@@ -6,11 +6,16 @@ import { UserModule } from './user/user.module';
 import { PostModule } from './post/post.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Connection, connection } from 'mongoose';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import process from 'process';
+
+
+const configService = new ConfigService();
 
 
 @Module({
-  imports: [AuthModule, UserModule, PostModule, 
-    MongooseModule.forRoot('mongodb+srv://zubairshahid:ZShahid123@cluster0.5hldv5z.mongodb.net/social-api-nest?retryWrites=true&w=majority', 
+  imports: [AuthModule, UserModule, PostModule, ConfigModule.forRoot( { expandVariables: true, isGlobal: true }),
+    MongooseModule.forRoot(configService.get('MONGO_CONNECTION_URL'), 
     {
       connectionFactory: (connection: Connection) => {
         if(connection.readyState === 1) {
