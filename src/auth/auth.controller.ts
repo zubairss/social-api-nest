@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -10,5 +10,21 @@ export class AuthController {
     return "Auth Route"
   }
 
+
+  @Post('register')
+  registerUser(@Body() body): string{
+    return "User Signup"
+  }
+
+  @Post('login')
+  loginUser(@Body() body): string{
+    return "User Login"
+  }
+
+  @Post('refreshToken')
+  refreshToken(@Query('token') token){
+    return "Refresh Token"
+  }
+  
 
 }
