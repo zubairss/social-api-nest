@@ -17,7 +17,6 @@ export class AuthService {
             return await createdUser.save();
         } catch(error){
             // throw new InternalServerErrorException(error.message);
-            console.log("Catch Block")
             throw new HttpException(error.message, HttpStatus.CONFLICT);   
          }
 

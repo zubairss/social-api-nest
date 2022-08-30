@@ -16,8 +16,7 @@ export class AuthController {
 
 
   @Post('register')
-  registerUser(@Body(new ValidationPipe()) createUserDto: CreateUserDto): Promise<any>{
-    console.log("Register Controller")
+  registerUser(@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true})) createUserDto: CreateUserDto): Promise<any>{
     const result = this.authService.registerUser(createUserDto);
     return result;
   }
