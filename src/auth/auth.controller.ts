@@ -29,7 +29,7 @@ export class AuthController {
     return result;
   }
 
-  @Post('refreshToken')
+  @Post('refresh')
   refreshToken(@Query('token') token){
     return "Refresh Token"
   }

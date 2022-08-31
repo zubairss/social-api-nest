@@ -4,6 +4,7 @@ import { UserController } from './user.controller';
 import { User, UserSchema } from './user.schema';
 import { MongooseModule, Schema } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
+import { JwtModule } from '@nestjs/jwt';
 
 const saltOrRounds: number = 10;
 
@@ -16,11 +17,28 @@ const saltOrRounds: number = 10;
       console.log("Pre MD");
       const hash =  await bcrypt.hash(this.password.toString(), saltOrRounds);
       this.password = hash;
+    });
+
+    schema.pre('findOneAndUpdate', async function() {
+      const userToUpdate = await this.model.findOne(this.getQuery());
+      
+      if('password' in this.getUpdate()) {
+        this.getUpdate()['password']  = await bcrypt.hash(this.getUpdate()['password'].toString(), saltOrRounds);
+      }
+
+
+      // if(this.getUpdate().includes('password')) {
+        
+      // }
+
     })
 
     return schema;
 
-  } }])],
+  } }]), JwtModule.register({
+    secret: "CitrusBits",
+    signOptions: {expiresIn: '1000000s'}
+  })],
   controllers: [UserController],
   providers: [UserService],
   exports: [MongooseModule]

@@ -7,7 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 @Module({
   imports: [UserModule, JwtModule.register({
     secret: "CitrusBits",
-    signOptions: {expiresIn: '1000s'}
+    signOptions: {expiresIn: '1000000s'}
   })],
   controllers: [AuthController],
   providers: [AuthService]

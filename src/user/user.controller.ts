@@ -1,5 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Patch, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Head, Header, HttpCode, HttpException, HttpStatus, Param, Patch, Query, Req, ValidationPipe } from '@nestjs/common';
+import { PaginateOptionsDto } from './dto/paginate-options.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
+import { Request } from 'express';
+import { QueryMongoIdDto } from './dto/query-id.dto';
 
 @Controller('user')
 export class UserController {
@@ -12,19 +16,50 @@ export class UserController {
 
   //get own id from token
   @Patch('profile')
-  updateProfile(@Body() body): string{
-    return "Update Profile"
+  updateProfile(@Body(new ValidationPipe({ skipMissingProperties: true, whitelist: true, forbidNonWhitelisted: true })) body: UpdateUserDto, @Req() req: Request): Promise<any>{
+    const authHeader = req.headers.authorization;
+    const authToken = authHeader && authHeader.split(' ')[1];
+
+    if(authToken == null) {
+      throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
+    }
+
+    return this.userService.findandUpdate(body, authToken);
   }
 
   @Get('listing')
-  getUsers(@Query() query): string{
-    return "User Listing"
+  async getUsers(@Query(new ValidationPipe({ skipMissingProperties: true, whitelist: true, forbidNonWhitelisted: true })) query: PaginateOptionsDto): Promise<any>{
+  
+    let options = {};
+    const _query = this.userService.findAll(options);
+    if(query.sort){
+      _query.sort({
+        createdAt: query.sort as any
+      })
+    }
+    const page: number = parseInt(query.page as any) || 1;
+    const limit = query.limit || 10;
+    const total = await this.userService.count(options);
+    const data = await _query.skip((page - 1) * limit).limit(limit).exec()
+    return {
+      data,
+      total,
+      page,
+      lastPage: Math.ceil(total/limit)
+    }
   }
 
-  //get own id from token
+  //get own id 1from token
   @Patch('friend/sendRequest')
-  sendRequest(@Query() query): string{
-    return "Send Friend Request"
+  sendRequest(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
+    const authHeader = req.headers.authorization;
+    const authToken = authHeader && authHeader.split(' ')[1];
+
+    if(authToken == null) {
+      throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
+    }
+
+    return this.userService.sendFriendRequest(query, authToken);
   }
 
   //get own id from token
@@ -34,9 +69,16 @@ export class UserController {
   }
 
    //get own id from token
-   @Delete('friend/deleteRequet')
-   deleteRequest(@Query() query): string{
-     return "Delete Friend Request"
+   @Delete('friend/deleteRequest')
+   deleteRequest(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
+    const authHeader = req.headers.authorization;
+    const authToken = authHeader && authHeader.split(' ')[1];
+
+    if(authToken == null) {
+      throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
+    }
+
+    return this.userService.deleteFriendRequest(query, authToken);
    }
 
    //get own id from token

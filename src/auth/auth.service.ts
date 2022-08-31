@@ -38,10 +38,8 @@ export class AuthService {
             if (res){
                 const isMatch = await bcrypt.compare(loginUserDto.password, res.password.toString());
                 if(isMatch) {
-
                     const payload = { _id: res._id, name: res.name, email: res.email, gender: res.gender, friends: res.friends, friendRequests: res.friendRequests }
                     const access_token = this.jwtService.sign(payload);
-
                     return {
                         user: payload,
                         accessToken: access_token,
@@ -51,12 +49,12 @@ export class AuthService {
                 }
                 throw new HttpException("Incorrect Password", HttpStatus.UNAUTHORIZED)
             }
-
             throw new HttpException("User Not Found", HttpStatus.NOT_FOUND);
         })
 
-
+        
     }
+
 
 }
 
