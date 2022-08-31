@@ -64,8 +64,14 @@ export class UserController {
 
   //get own id from token
   @Patch('friend/acceptRequest')
-  acceptRequest(@Query() query): string{
-    return "Accept Friend Request"
+  acceptRequest(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
+    const authHeader = req.headers.authorization;
+    const authToken = authHeader && authHeader.split(' ')[1];
+
+    if(authToken == null) {
+      throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
+    }
+    return this.userService.acceptFriendRequest(query, authToken);
   }
 
    //get own id from token

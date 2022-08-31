@@ -79,6 +79,31 @@ export class UserService {
 
     }
 
+    async acceptFriendRequest(query: QueryMongoIdDto, authToken: string): Promise<any>{
+        const user = this.jwtService.decode(authToken);
+        const userId = user['_id'];
+        const friendId = query.id;
+
+        if(userId == friendId) throw new HttpException("Own ID & Friend ID Conflict", HttpStatus.CONFLICT);
+
+
+        return await this.userModel.findById(userId).then(async (res) => {
+            if (res){
+                if(res.friends.includes(friendId as any)) throw new HttpException("Already Friends", HttpStatus.CONFLICT);
+                if(res.friendRequests.includes(friendId as any)) {
+                    return await this.userModel.findByIdAndUpdate(userId, { $pull: { friendRequests: friendId }, $push: { friends: friendId }})
+                    .then((res) => {
+                        if (res) return { message: "Friend Request Accepted" }
+                        throw new HttpException("Friend Request Doesn't Exists", HttpStatus.CONFLICT);
+                    }).catch((err) => { throw new HttpException(err.message, HttpStatus.CONFLICT)});
+                }
+            }
+            throw new HttpException("Friend Request Not Found", HttpStatus.NOT_FOUND);
+        }).catch((err) => {
+            throw new HttpException(err.message, HttpStatus.CONFLICT);
+        })
+
+    }
 
 
     async friendsListing(authToken: string): Promise<any>{
