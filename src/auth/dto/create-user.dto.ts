@@ -1,10 +1,9 @@
-import { Optional } from "@nestjs/common";
 import { IsEmail, Length, Min, Max, MinLength, IsString, IsNotEmpty, Allow, isEnum, IsNumber, IsOptional, IsIn, } from "class-validator";
 
 export class CreateUserDto {
 
 
-    @MinLength(3, { message: "Name lenght too short"})
+    @MinLength(3, { message: "Name length too short"})
     @IsString()
     @IsNotEmpty()
     name: string;
@@ -16,7 +15,7 @@ export class CreateUserDto {
 
     @IsString()
     @IsNotEmpty()
-    @Length(6, 15, { message: "Password lenght must be between 6 - 15"})
+    @Length(6, 15, { message: "Password length must be between 6 - 15"})
     password: string;
 
     @IsOptional()
