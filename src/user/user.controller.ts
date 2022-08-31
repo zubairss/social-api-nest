@@ -9,12 +9,6 @@ import { QueryMongoIdDto } from './dto/query-id.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get('')
-  index(): string{
-    return "Users Route"
-  }
-
-  //get own id from token
   @Patch('profile')
   updateProfile(@Body(new ValidationPipe({ skipMissingProperties: true, whitelist: true, forbidNonWhitelisted: true })) body: UpdateUserDto, @Req() req: Request): Promise<any>{
     const authHeader = req.headers.authorization;
@@ -49,7 +43,12 @@ export class UserController {
     }
   }
 
-  //get own id 1from token
+  @Get('friend/listing')
+  friendListing():Promise<any>{
+    return
+  }
+
+  
   @Patch('friend/sendRequest')
   sendRequest(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
     const authHeader = req.headers.authorization;
@@ -62,7 +61,7 @@ export class UserController {
     return this.userService.sendFriendRequest(query, authToken);
   }
 
-  //get own id from token
+  
   @Patch('friend/acceptRequest')
   acceptRequest(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
     const authHeader = req.headers.authorization;
@@ -74,7 +73,7 @@ export class UserController {
     return this.userService.acceptFriendRequest(query, authToken);
   }
 
-   //get own id from token
+  
    @Delete('friend/deleteRequest')
    deleteRequest(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
     const authHeader = req.headers.authorization;
@@ -87,13 +86,20 @@ export class UserController {
     return this.userService.deleteFriendRequest(query, authToken);
    }
 
-   //get own id from token
-   @Get('friend/listing')
-   friendListing(@Query() query): string{
-  
-      return "Get Friend's Listing"
+   @Delete('friend/remove')
+   deleteFriend(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
+
+    const authHeader = req.headers.authorization;
+    const authToken = authHeader && authHeader.split(' ')[1];
+
+    if(authToken == null) {
+      throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
+    }
+
+    return this.userService.removeFriend(query, authToken);
+
    }
- 
+
 
   
 

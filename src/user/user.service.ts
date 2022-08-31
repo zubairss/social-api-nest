@@ -31,6 +31,11 @@ export class UserService {
         })
     }
 
+    async friendListing(): Promise<any>{
+        return;
+    }
+
+
     async sendFriendRequest(query: QueryMongoIdDto, authToken: string): Promise<any>{
       
         const friendId = query.id;
@@ -43,7 +48,7 @@ export class UserService {
         await this.userModel.findById(friendId).then((res) => {
             if (res) {
                 if(res['friendRequests'].includes(userId as any)){
-                    throw new HttpException("Already Friends", HttpStatus.CONFLICT);
+                    throw new HttpException("Friend Request Already Sent", HttpStatus.CONFLICT);
                 }
                 return;
             }
@@ -106,10 +111,22 @@ export class UserService {
     }
 
 
-    async friendsListing(authToken: string): Promise<any>{
-    
-        
-        return
+    async removeFriend(query: QueryMongoIdDto, authToken: string): Promise<any>{
+        const user = this.jwtService.decode(authToken);
+        const userId = user['_id'];
+        const friendId = query.id;
+
+        if(userId == friendId) throw new HttpException("Own ID & Friend ID Conflict", HttpStatus.CONFLICT);
+
+        return await this.userModel.findByIdAndUpdate(userId, { $pull: { friends: friendId }}).then((res) => {
+            if (!res.friends.includes(friendId as any)) throw new HttpException("Friend Don't Exists", HttpStatus.NOT_FOUND);
+            if (res) return { message: "Friend Deleted!"}
+            throw new HttpException("Not Found", HttpStatus.NOT_FOUND)
+        }).catch((err) => {
+            console.log("Catch Block");
+            throw new HttpException(err.message, HttpStatus.CONFLICT);
+        })
+
     }
 
 }

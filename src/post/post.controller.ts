@@ -6,11 +6,6 @@ import { PostService } from './post.service';
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  @Get('')
-  index():string{
-    return "Posts Routes"
-  }
-
   //need Id of uploader - take it from auth token
   @Post('create')
   createPost(@Body() body): string{

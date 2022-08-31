@@ -10,12 +10,6 @@ import { LoginUserDto } from './dto/login-user.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Get('')
-  index(): string{
-    return "Auth Route"
-  }
-
-
   @Post('register')
   registerUser(@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true})) createUserDto: CreateUserDto): Promise<any>{
     const result = this.authService.registerUser(createUserDto);
