@@ -91,14 +91,16 @@ export class UserService {
 
         if(userId == friendId) throw new HttpException("Own ID & Friend ID Conflict", HttpStatus.CONFLICT);
 
-
         return await this.userModel.findById(userId).then(async (res) => {
             if (res){
                 if(res.friends.includes(friendId as any)) throw new HttpException("Already Friends", HttpStatus.CONFLICT);
                 if(res.friendRequests.includes(friendId as any)) {
                     return await this.userModel.findByIdAndUpdate(userId, { $pull: { friendRequests: friendId }, $push: { friends: friendId }})
-                    .then((res) => {
-                        if (res) return { message: "Friend Request Accepted" }
+                    .then(async (res) => {
+                        if(res) return await this.userModel.findByIdAndUpdate(friendId, { $push: { friends: userId }}).then((res) => {
+                            if (res) return { message: "Friend Request Accepted"}
+                            throw new HttpException("Friend Request Doesn't Exists", HttpStatus.CONFLICT)
+                        }).catch((err) => { throw new HttpException(err.message, HttpStatus.CONFLICT )})
                         throw new HttpException("Friend Request Doesn't Exists", HttpStatus.CONFLICT);
                     }).catch((err) => { throw new HttpException(err.message, HttpStatus.CONFLICT)});
                 }
@@ -118,9 +120,13 @@ export class UserService {
 
         if(userId == friendId) throw new HttpException("Own ID & Friend ID Conflict", HttpStatus.CONFLICT);
 
-        return await this.userModel.findByIdAndUpdate(userId, { $pull: { friends: friendId }}).then((res) => {
+        return await this.userModel.findByIdAndUpdate(userId, { $pull: { friends: friendId }}).then(async (res) => {
             if (!res.friends.includes(friendId as any)) throw new HttpException("Friend Don't Exists", HttpStatus.NOT_FOUND);
-            if (res) return { message: "Friend Deleted!"}
+            if (res) return await this.userModel.findByIdAndUpdate(friendId, { $pull: { friends: userId }}).then((res) => {
+                if (res) return { message: "Friend Deleted!" }
+                throw new HttpException("Not Found", HttpStatus.NOT_FOUND);
+            })
+            // if (res) return { message: "Friend Deleted!"}
             throw new HttpException("Not Found", HttpStatus.NOT_FOUND)
         }).catch((err) => {
             console.log("Catch Block");
