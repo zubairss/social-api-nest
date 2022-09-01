@@ -1,16 +1,18 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
+import { PaginateOptionsDto } from 'src/user/dto/paginate-options.dto';
+import { User, UserDocument } from 'src/user/user.schema';
 import { CreatePostDto } from './dto/create-post.dto';
 import { Post, PostDocument } from './post.schema';
 
 @Injectable()
 export class PostService {
 
-    constructor(@InjectModel(Post.name) private postModel: Model<PostDocument>, private jwtService: JwtService) {}
+    constructor(@InjectModel(Post.name) private postModel: Model<PostDocument>, private jwtService: JwtService, @InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-    async createPost(createPostDto: CreatePostDto, authToken: string) {
+    async createPost(createPostDto: CreatePostDto, authToken: string): Promise<any> {
         const user = this.jwtService.decode(authToken);
         const authorId = user['_id'];
 
@@ -27,32 +29,58 @@ export class PostService {
         } catch(error) {
             throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
         }
-
-
-
     }
 
-    async postFeed(authToken: string){
+    async postFeed(query:PaginateOptionsDto ,authToken: string): Promise<any>{
 
+        const userId = this.jwtService.decode(authToken)['_id'];
+        const page: number = parseInt(query.page as any) || 1;
+        const limit = query.limit || 10;
+        const skip = (page - 1) * limit;
+        const sort = query.sort == "desc"?-1:1;
 
+        return await this.userModel.aggregate([
+            {
+              $match: {
+                _id: new mongoose.Types.ObjectId(userId)
+              }
+            }, 
+            {
+                '$lookup': {
+                    'from': 'posts', 
+                    'localField': 'friends', 
+                    'foreignField': 'author', 
+                    'as': 'posts'
+                }
+            }, {
+                '$project': {
+                    'posts': 1, 
+                    '_id': 0
+                }
+            }, {
+                '$unwind': {
+                    'path': '$posts'
+                }
+            },
+            {
+                $sort: {'posts.createdAt': sort}
+              },
+              {
+                $skip: skip
+              },
+              {
+                $limit: limit
+              },
+            //   {$setWindowFields: {output: {totalCount: {$count: {}}}}}
+            
+          ])
+          .then((res) => {
+            if(res) {
+                res.push({ totalLenght: res.length})
+                return res;
+            }
+            throw new HttpException("No Posts Found", HttpStatus.NO_CONTENT);
+           }).catch((err) => { throw new HttpException(err.message, HttpStatus.BAD_REQUEST)});
     }
 
-
-    // async registerUser(createUserDto: CreateUserDto): Promise<any> {   
-    //     const createdUser = new this.userModel(createUserDto);  
-    //     try{
-    //         await createdUser.save();
-    //         const payload = { _id: createdUser._id, name: createdUser.name, email: createdUser.email, gender: createdUser.gender, friends: createdUser.friends, friendRequests: createdUser.friendRequests };
-    //         const access_token = this.jwtService.sign(payload);
-    //         return {
-    //             user: payload,
-    //             accessToken: access_token,
-    //             message: "User Successfully Created",
-    //             statusCode: HttpStatus.CREATED
-    //         }
-    //     } catch(error){
-    //         // throw new InternalServerErrorException(error.message);
-    //         throw new HttpException(error.message, HttpStatus.CONFLICT);   
-    //      }
-    // }
 }

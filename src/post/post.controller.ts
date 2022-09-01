@@ -31,7 +31,7 @@ export class PostController {
       throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
     }
     
-    return ;
+    return this.postService.postFeed(query, authToken);
   }
 
 

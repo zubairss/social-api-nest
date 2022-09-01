@@ -44,8 +44,15 @@ export class UserController {
   }
 
   @Get('friend/listing')
-  friendListing():Promise<any>{
-    return
+  friendListing(@Query(new ValidationPipe({ skipMissingProperties: true, whitelist: true, forbidNonWhitelisted: true })) query: PaginateOptionsDto, @Req() req: Request):Promise<any>{
+    const authHeader = req.headers.authorization;
+    const authToken = authHeader && authHeader.split(' ')[1];
+
+    if(authToken == null) {
+      throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
+    }
+
+    return  this.userService.friendListing(query, authToken);
   }
 
   

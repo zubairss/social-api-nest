@@ -1,11 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model, mongo, Mongoose } from 'mongoose';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserModule } from './user.module';
 import { User, UserDocument } from './user.schema';
 import { JwtService } from '@nestjs/jwt';
 import { QueryMongoIdDto } from './dto/query-id.dto';
+import { PaginateOptionsDto } from './dto/paginate-options.dto';
 
 @Injectable()
 export class UserService {
@@ -31,8 +32,57 @@ export class UserService {
         })
     }
 
-    async friendListing(): Promise<any>{
-        return;
+    async friendListing(query: PaginateOptionsDto ,authToken: string): Promise<any>{
+        const userId = this.jwtService.decode(authToken)['_id'];
+
+        const page: number = parseInt(query.page as any) || 1;
+        const limit = query.limit || 10;
+        const skip = (page - 1) * limit;
+        const sort = query.sort == "desc"?-1:1;
+
+        console.log(userId);
+
+        return await this.userModel.aggregate(
+            [
+                {
+                    $match: { _id: new mongoose.Types.ObjectId(userId)}
+                },
+                {
+                    '$project': {
+                      'friends': 1, 
+                      '_id': 0
+                    }
+                  }, {
+                    '$lookup': {
+                      'from': 'users', 
+                      'localField': 'friends', 
+                      'foreignField': '_id', 
+                      'as': 'friends'
+                    }
+                  }, 
+                  {
+                    '$unwind': {
+                      'path': '$friends'
+                    }
+                  },
+                  {
+                    $sort: {'friends.createdAt': sort}
+                  },
+                  {
+                    $skip: skip
+                  },
+                  {
+                    $limit: limit
+                  },
+                  {$setWindowFields: {output: {totalCount: {$count: {}}}}}
+
+             ]
+        )
+        .then((res) => {
+            if (res) return res;
+            throw new HttpException("No Friends Found", HttpStatus.NO_CONTENT);
+           }).catch((err) => { throw new HttpException(err.message, HttpStatus.BAD_REQUEST)})
+
     }
 
 

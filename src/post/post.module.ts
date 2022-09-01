@@ -4,9 +4,10 @@ import { PostController } from './post.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Post, PostSchema } from './post.schema';
 import { JwtModule } from '@nestjs/jwt';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]), JwtModule.register({
+  imports: [UserModule, MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]), JwtModule.register({
     secret: "CitrusBits",
     signOptions: {expiresIn: '1000000s'}
   })],
