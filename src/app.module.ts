@@ -25,7 +25,10 @@ const configService = new ConfigService();
           Logger.log('DB disconnected');
         });
         return connection;
-      }
+      },
+      retryAttempts: 100,
+      useNewUrlParser: true,
+      keepAlive: true,
     })
   
   ],
