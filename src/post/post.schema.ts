@@ -15,6 +15,9 @@ export class Post{
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true})
     author: User
 
+    @Prop({ type: Boolean, default: true })
+    isPublic: boolean
+
     
 
 }

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Length, IsString, IsNotEmpty, Validate, } from "class-validator";
+import { Length, IsString, IsNotEmpty, Validate, IsOptional, IsBoolean, } from "class-validator";
 
 
 
@@ -32,6 +32,11 @@ export class CreatePostDto{
     @IsNotEmpty()
     @Length(20, 500)
     description: string
+
+    @ApiProperty({ description: "Post is Public or Private", example: "true / false, default: true"})
+    @IsOptional()
+    @IsBoolean()
+    isPublic: boolean
 
     // @Validate(IsMongooseId)
     // @IsNotEmpty()

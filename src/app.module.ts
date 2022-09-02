@@ -26,8 +26,6 @@ const configService = new ConfigService();
         });
         return connection;
       },
-      retryAttempts: 100,
-      useNewUrlParser: true,
       keepAlive: true,
     })
   
