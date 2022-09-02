@@ -1,3 +1,4 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { Length, IsString, IsNotEmpty, Validate, } from "class-validator";
 
 
@@ -20,11 +21,13 @@ import { Length, IsString, IsNotEmpty, Validate, } from "class-validator";
 
 export class CreatePostDto{
 
+    @ApiProperty({ description: "Post Title", example: "Selling Laptop - MacBook Pro 2015 - 13inches"})
     @IsString()
     @IsNotEmpty()
     @Length(12, 100)
     title: string
 
+    @ApiProperty({ description: "Post Description", example: "Selling Laptop - MacBook Pro 2015 - 13inches - LoremIpsumLoremIpsumLoremIpsumLoremIpsumLoremIpsumLoremIpsum"})
     @IsString()
     @IsNotEmpty()
     @Length(20, 500)
