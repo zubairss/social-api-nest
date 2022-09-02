@@ -1,16 +1,19 @@
-import { Body, Controller, Delete, Get, Head, Header, HttpCode, HttpException, HttpStatus, Param, Patch, Query, Req, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Head, Header, HttpCode, HttpException, HttpStatus, Param, Patch, Query, Req, UseGuards, ValidationPipe } from '@nestjs/common';
 import { PaginateOptionsDto } from './dto/paginate-options.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
 import { Request } from 'express';
 import { QueryMongoIdDto } from './dto/query-id.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @UseGuards(AuthGuard('JWT'))
   @Patch('profile')
-  updateProfile(@Body(new ValidationPipe({ skipMissingProperties: true, whitelist: true, forbidNonWhitelisted: true })) body: UpdateUserDto, @Req() req: Request): Promise<any>{
+  updateProfile(@Body(new ValidationPipe({ skipMissingProperties: true, whitelist: true, forbidNonWhitelisted: true })) body: CreateUserDto, @Req() req: Request): Promise<any>{
     const authHeader = req.headers.authorization;
     const authToken = authHeader && authHeader.split(' ')[1];
 
@@ -21,6 +24,7 @@ export class UserController {
     return this.userService.findandUpdate(body, authToken);
   }
 
+  @UseGuards(AuthGuard('JWT'))
   @Get('listing')
   async getUsers(@Query(new ValidationPipe({ skipMissingProperties: true, whitelist: true, forbidNonWhitelisted: true })) query: PaginateOptionsDto): Promise<any>{
   
@@ -43,6 +47,7 @@ export class UserController {
     }
   }
 
+  @UseGuards(AuthGuard('JWT'))
   @Get('friend/listing')
   friendListing(@Query(new ValidationPipe({ skipMissingProperties: true, whitelist: true, forbidNonWhitelisted: true })) query: PaginateOptionsDto, @Req() req: Request):Promise<any>{
     const authHeader = req.headers.authorization;
@@ -55,7 +60,7 @@ export class UserController {
     return  this.userService.friendListing(query, authToken);
   }
 
-  
+  @UseGuards(AuthGuard('JWT'))
   @Patch('friend/sendRequest')
   sendRequest(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
     const authHeader = req.headers.authorization;
@@ -68,7 +73,8 @@ export class UserController {
     return this.userService.sendFriendRequest(query, authToken);
   }
 
-  
+
+  @UseGuards(AuthGuard('JWT'))
   @Patch('friend/acceptRequest')
   acceptRequest(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
     const authHeader = req.headers.authorization;
@@ -81,6 +87,7 @@ export class UserController {
   }
 
   
+  @UseGuards(AuthGuard('JWT'))
    @Delete('friend/deleteRequest')
    deleteRequest(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
     const authHeader = req.headers.authorization;
@@ -93,6 +100,7 @@ export class UserController {
     return this.userService.deleteFriendRequest(query, authToken);
    }
 
+   @UseGuards(AuthGuard('JWT'))
    @Delete('friend/remove')
    deleteFriend(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
 

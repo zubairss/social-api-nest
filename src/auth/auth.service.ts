@@ -19,10 +19,12 @@ export class AuthService {
         try{
             await createdUser.save();
             const payload = { _id: createdUser._id, name: createdUser.name, email: createdUser.email, gender: createdUser.gender, friends: createdUser.friends, friendRequests: createdUser.friendRequests };
-            const access_token = this.jwtService.sign(payload);
+            const access_token = this.jwtService.sign(payload, { secret: 'CitrusBits', expiresIn: 60*15 });
+                    const refresh_token = this.jwtService.sign(payload, { secret: 'CitrusBits', expiresIn: 60*60*24*7 });
             return {
                 user: payload,
                 accessToken: access_token,
+                refreshToken: refresh_token,
                 message: "User Successfully Created",
                 statusCode: HttpStatus.CREATED
             }
@@ -39,10 +41,13 @@ export class AuthService {
                 const isMatch = await bcrypt.compare(loginUserDto.password, res.password.toString());
                 if(isMatch) {
                     const payload = { _id: res._id, name: res.name, email: res.email, gender: res.gender, friends: res.friends, friendRequests: res.friendRequests }
-                    const access_token = this.jwtService.sign(payload);
+                    const access_token = this.jwtService.sign(payload, { secret: 'CitrusBits', expiresIn: 60*15 });
+                    const refresh_token = this.jwtService.sign(payload, { secret: 'CitrusBits', expiresIn: 60*60*24*7 });
+                    this.jwtService.sign(payload, { secret: 'CitrusBits', expiresIn: 60*15 })
                     return {
                         user: payload,
                         accessToken: access_token,
+                        refreshToken: refresh_token,
                         message: "Login Successful",
                         statusCode: HttpStatus.OK
                     };
@@ -54,6 +59,16 @@ export class AuthService {
 
         
     }
+
+    async refreshToken(payload: any) {
+
+        const refreshToken = this.jwtService.sign(payload, { secret: 'CitrusBits', expiresIn: 60*60*24*7 });
+        return {
+            refreshToken
+        }
+    }
+
+  
 
 
 }

@@ -1,10 +1,13 @@
-import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, Query, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, Query, Req, UseGuards, ValidationPipe } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { create } from 'domain';
+import { Request } from 'express';
 import { UserModule } from 'src/user/user.module';
 import { User } from 'src/user/user.schema';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+
 
 @Controller('auth')
 export class AuthController {
@@ -23,10 +26,15 @@ export class AuthController {
     return result;
   }
 
+  @UseGuards(AuthGuard('Refresh-JWT'))
   @Post('refresh')
-  refreshToken(@Query('token') token){
-    return "Refresh Token"
+  refreshToken(@Req() req: Request){
+    const payload = req.user;
+    delete payload['iat'];
+    delete payload['exp'];
+    return this.authService.refreshToken(payload);
   }
+
   
 
 }

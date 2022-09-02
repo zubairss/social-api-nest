@@ -5,6 +5,8 @@ import { User, UserSchema } from './user.schema';
 import { MongooseModule, Schema } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { JwtModule } from '@nestjs/jwt';
+import { AuthModule } from 'src/auth/auth.module';
+import { AccessTokenStrategy } from 'src/auth/strategies/access-token.strategy';
 
 const saltOrRounds: number = 10;
 
@@ -40,7 +42,7 @@ const saltOrRounds: number = 10;
     signOptions: {expiresIn: '1000000s'}
   })],
   controllers: [UserController],
-  providers: [UserService],
+  providers: [UserService, AccessTokenStrategy],
   exports: [MongooseModule]
 })
 export class UserModule {}
