@@ -12,12 +12,9 @@ export class PostService {
 
     constructor(@InjectModel(Post.name) private postModel: Model<PostDocument>, private jwtService: JwtService, @InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-    async createPost(createPostDto: CreatePostDto, authToken: string): Promise<any> {
-        const user = this.jwtService.decode(authToken);
-        const authorId = user['_id'];
-
+    async createPost(createPostDto: CreatePostDto, authorId: string): Promise<any> {
+     
         const post = { ...createPostDto, author: authorId }
-
         const createdPost = new this.postModel(post);
         try{
             await createdPost.save();
@@ -31,9 +28,8 @@ export class PostService {
         }
     }
 
-    async postFeed(query:PaginateOptionsDto ,authToken: string): Promise<any>{
+    async postFeed(query:PaginateOptionsDto ,userId: string): Promise<any>{
 
-        const userId = this.jwtService.decode(authToken)['_id'];
         const page: number = parseInt(query.page as any) || 1;
         const limit = query.limit || 10;
         const skip = (page - 1) * limit;

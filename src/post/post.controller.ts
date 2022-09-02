@@ -14,27 +14,13 @@ export class PostController {
   @UseGuards(AuthGuard('JWT'))
   @Post('create')
   createPost(@Body(new ValidationPipe({ skipMissingProperties: true, whitelist: true, forbidNonWhitelisted: true })) body: CreatePostDto, @Req() req: Request): Promise<any>{
-    const authHeader = req.headers.authorization;
-    const authToken = authHeader && authHeader.split(' ')[1];
-
-    if(authToken == null) {
-      throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
-    }
-
-    return this.postService.createPost(body, authToken);
+    return this.postService.createPost(body, req.user['_id']);
   }
 
   @UseGuards(AuthGuard('JWT'))
   @Get('feed')
-  postFeed(@Query(new ValidationPipe({ skipMissingProperties: true, whitelist: true, forbidNonWhitelisted: true })) query: PostPaginateOptionsDto, @Req() req: Request): Promise<any>{
-    const authHeader = req.headers.authorization;
-    const authToken = authHeader && authHeader.split(' ')[1];
-
-    if(authToken == null) {
-      throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
-    }
-    
-    return this.postService.postFeed(query, authToken);
+  postFeed(@Query(new ValidationPipe({ skipMissingProperties: true, whitelist: true, forbidNonWhitelisted: true })) query: PostPaginateOptionsDto, @Req() req: Request): Promise<any>{    
+    return this.postService.postFeed(query, req.user['_id']);
   }
 
 

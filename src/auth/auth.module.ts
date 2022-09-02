@@ -8,11 +8,6 @@ import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 
 @Module({
   imports: [UserModule, 
-
-  //   JwtModule.register({
-  //   secret: "CitrusBits",
-  //   signOptions: {expiresIn: '1000000s'}
-  // })
   JwtModule.register({})
 
 ],

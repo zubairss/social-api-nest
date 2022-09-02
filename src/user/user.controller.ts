@@ -14,14 +14,7 @@ export class UserController {
   @UseGuards(AuthGuard('JWT'))
   @Patch('profile')
   updateProfile(@Body(new ValidationPipe({ skipMissingProperties: true, whitelist: true, forbidNonWhitelisted: true })) body: CreateUserDto, @Req() req: Request): Promise<any>{
-    const authHeader = req.headers.authorization;
-    const authToken = authHeader && authHeader.split(' ')[1];
-
-    if(authToken == null) {
-      throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
-    }
-
-    return this.userService.findandUpdate(body, authToken);
+     return this.userService.findandUpdate(body, req.user['_id']);
   }
 
   @UseGuards(AuthGuard('JWT'))
@@ -50,72 +43,33 @@ export class UserController {
   @UseGuards(AuthGuard('JWT'))
   @Get('friend/listing')
   friendListing(@Query(new ValidationPipe({ skipMissingProperties: true, whitelist: true, forbidNonWhitelisted: true })) query: PaginateOptionsDto, @Req() req: Request):Promise<any>{
-    const authHeader = req.headers.authorization;
-    const authToken = authHeader && authHeader.split(' ')[1];
-
-    if(authToken == null) {
-      throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
-    }
-
-    return  this.userService.friendListing(query, authToken);
+    return  this.userService.friendListing(query, req.user['_id']);
   }
 
   @UseGuards(AuthGuard('JWT'))
   @Patch('friend/sendRequest')
   sendRequest(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
-    const authHeader = req.headers.authorization;
-    const authToken = authHeader && authHeader.split(' ')[1];
-
-    if(authToken == null) {
-      throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
-    }
-
-    return this.userService.sendFriendRequest(query, authToken);
+    return this.userService.sendFriendRequest(query, req.user['_id']);
   }
 
 
   @UseGuards(AuthGuard('JWT'))
   @Patch('friend/acceptRequest')
   acceptRequest(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
-    const authHeader = req.headers.authorization;
-    const authToken = authHeader && authHeader.split(' ')[1];
-
-    if(authToken == null) {
-      throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
-    }
-    return this.userService.acceptFriendRequest(query, authToken);
+    return this.userService.acceptFriendRequest(query, req.user['_id']);
   }
 
   
   @UseGuards(AuthGuard('JWT'))
    @Delete('friend/deleteRequest')
    deleteRequest(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
-    const authHeader = req.headers.authorization;
-    const authToken = authHeader && authHeader.split(' ')[1];
-
-    if(authToken == null) {
-      throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
-    }
-
-    return this.userService.deleteFriendRequest(query, authToken);
+    return this.userService.deleteFriendRequest(query, req.user['_id']);
    }
 
    @UseGuards(AuthGuard('JWT'))
    @Delete('friend/remove')
    deleteFriend(@Query(new ValidationPipe()) query: QueryMongoIdDto, @Req() req: Request): Promise<any>{
-
-    const authHeader = req.headers.authorization;
-    const authToken = authHeader && authHeader.split(' ')[1];
-
-    if(authToken == null) {
-      throw new HttpException("Can't Get User ID", HttpStatus.BAD_REQUEST)
-    }
-
-    return this.userService.removeFriend(query, authToken);
-
+    return this.userService.removeFriend(query, req.user['_id']);
    }
-
-
-  
 
 }

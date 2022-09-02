@@ -21,9 +21,8 @@ export class UserService {
         return this.userModel.count(options).exec(); 
     }
 
-    async findandUpdate(userDetails: UpdateUserDto, authToken: string): Promise<any>{
+    async findandUpdate(userDetails: UpdateUserDto, userId: string): Promise<any>{
 
-        const userId: string = this.jwtService.decode(authToken)['_id'];
         return await this.userModel.findByIdAndUpdate(userId, userDetails, { new: true }).then((res) => {
             if (res) return { res, message: "User Updated Successfully" };
             throw new HttpException("User Not Found", HttpStatus.NOT_FOUND);
@@ -32,8 +31,7 @@ export class UserService {
         })
     }
 
-    async friendListing(query: PaginateOptionsDto ,authToken: string): Promise<any>{
-        const userId = this.jwtService.decode(authToken)['_id'];
+    async friendListing(query: PaginateOptionsDto ,userId: string): Promise<any>{
 
         const page: number = parseInt(query.page as any) || 1;
         const limit = query.limit || 10;
@@ -86,13 +84,9 @@ export class UserService {
     }
 
 
-    async sendFriendRequest(query: QueryMongoIdDto, authToken: string): Promise<any>{
+    async sendFriendRequest(query: QueryMongoIdDto, userId: string): Promise<any>{
       
         const friendId = query.id;
-        const user = this.jwtService.decode(authToken);
-        const userId: string = user['_id'];
-        const friendsList = user['friendRequests']
-
         if (friendId == userId) throw new HttpException("Can't Send Request to Yourself", HttpStatus.BAD_REQUEST);
     
         await this.userModel.findById(friendId).then((res) => {
@@ -115,11 +109,9 @@ export class UserService {
 
     }
 
-    async deleteFriendRequest(query: QueryMongoIdDto, authToken: string): Promise<any>{
-        const user = this.jwtService.decode(authToken);
-        const userId = user['_id'];
-        const friendId = query.id;
-        
+    async deleteFriendRequest(query: QueryMongoIdDto, userId: string): Promise<any>{
+   
+        const friendId = query.id;     
         if(userId == friendId) throw new HttpException("Own ID & Friend ID Conflict", HttpStatus.CONFLICT);
 
         return await this.userModel.findByIdAndUpdate(userId, { $pull: { friendRequests: friendId }}).then((res) => {
@@ -134,11 +126,9 @@ export class UserService {
 
     }
 
-    async acceptFriendRequest(query: QueryMongoIdDto, authToken: string): Promise<any>{
-        const user = this.jwtService.decode(authToken);
-        const userId = user['_id'];
+    async acceptFriendRequest(query: QueryMongoIdDto, userId: string): Promise<any>{
+        
         const friendId = query.id;
-
         if(userId == friendId) throw new HttpException("Own ID & Friend ID Conflict", HttpStatus.CONFLICT);
 
         return await this.userModel.findById(userId).then(async (res) => {
@@ -163,11 +153,9 @@ export class UserService {
     }
 
 
-    async removeFriend(query: QueryMongoIdDto, authToken: string): Promise<any>{
-        const user = this.jwtService.decode(authToken);
-        const userId = user['_id'];
+    async removeFriend(query: QueryMongoIdDto, userId: string): Promise<any>{
+        
         const friendId = query.id;
-
         if(userId == friendId) throw new HttpException("Own ID & Friend ID Conflict", HttpStatus.CONFLICT);
 
         return await this.userModel.findByIdAndUpdate(userId, { $pull: { friends: friendId }}).then(async (res) => {
