@@ -35,7 +35,14 @@ export class PostService {
         const skip = (page - 1) * limit;
         const sort = query.sort == "desc"?-1:1;
 
-        return await this.userModel.aggregate([
+
+        const publicPosts = await this.postModel.find({ 'isPublic': true }).then((res) => {
+            // res.push({ totalPublicPosts: res.length})
+            return res;
+        });
+
+
+        const privateFriendPosts = await this.userModel.aggregate([
             {
               $match: {
                 _id: new mongoose.Types.ObjectId(userId)
@@ -53,30 +60,57 @@ export class PostService {
                     'posts': 1, 
                     '_id': 0
                 }
-            }, {
+            }, 
+            {
                 '$unwind': {
                     'path': '$posts'
                 }
             },
             {
-                $sort: {'posts.createdAt': sort}
-              },
-              {
-                $skip: skip
-              },
-              {
-                $limit: limit
-              },
+                $match: {
+                    "posts.isPublic": false
+                }
+            },
+            // {
+            //     $sort: {'posts.createdAt': sort}
+            //   },
+            //   {
+            //     $skip: skip
+            //   },
+            //   {
+            //     $limit: limit
+            //   },
             //   {$setWindowFields: {output: {totalCount: {$count: {}}}}}
             
           ])
-          .then((res) => {
+          .then(async (res) => {
             if(res) {
-                res.push({ totalLenght: res.length})
-                return res;
+                // res.push({ totalPrivateFriendsPostsLenght: res.length})
+
+                //Getting Pulbic Posts & Friend's Private Posts and Combining 
+                const privatePosts = res.map((post) => post.posts)
+                const publicPosts = await this.postModel.find({ 'isPublic': true });
+                const allPosts = privatePosts.concat(publicPosts);
+
+                console.log(allPosts);
+
+                //Paginate
+
+                allPosts.push({ 
+                    totalPrivateFriendsPosts: privatePosts.length,
+                    totalPublicPosts: publicPosts.length
+                });
+        
+                return allPosts;
             }
             throw new HttpException("No Posts Found", HttpStatus.NO_CONTENT);
            }).catch((err) => { throw new HttpException(err.message, HttpStatus.BAD_REQUEST)});
+
+
+        //    console.log(privateFriendPosts);
+        //    console.log(publicPosts);
+
+           return privateFriendPosts;
     }
 
 }
